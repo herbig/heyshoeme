@@ -5,23 +5,26 @@ import {
   VStack,
   Image,
   Code,
-  Center
+  Center,
+  ThemeConfig
 } from "@chakra-ui/react"
 import { Route, Routes, useLocation } from "react-router-dom";
 import web3 from "web3";
 import { BigNumber } from 'ethers';
 import { extendTheme } from '@chakra-ui/react'
 
-const themeConfig = {
+const config: ThemeConfig = {
   initialColorMode: 'dark',
   useSystemColorMode: false,
 }
+const theme = extendTheme({ config });
+export default theme;
 
-const COLLECTION_URL = 'https://rarible.com/token/polygon/0xd67d0dd4b6e8639f8c51f60bfcb646cb6ed5e993';
-const CONTRACT_URL = 'https://polygonscan.com/address/TODOTODO#code';
+const COLLECTION_URL = 'https://rarible.com/token/polygon/0x42a2a67ee93f27840496ed5f8152a715ddc5de16';
+const CONTRACT_URL = 'https://polygonscan.com/address/0x42a2a67ee93f27840496ed5f8152a715ddc5de16#code';
 
 export const App = () => (
-  <ChakraProvider theme={extendTheme({ themeConfig })}>
+  <ChakraProvider theme={theme}>
     <Routes>
       <Route path='/' element={<Home />} />
       <Route path='/*' element={<Redirect />} />
