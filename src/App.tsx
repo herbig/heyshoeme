@@ -93,11 +93,11 @@ function Home() {
 function Verify() {
 
   // TODO
-  // 1. Scrape profile photo from html of given username e.g. https://twitter.com/elonmusk/photo
+  // 1. Scrape profile photo from rendered html of given username e.g. https://twitter.com/elonmusk/photo
   // 2. Overlay it with shoe_mask.png
-  // 3. Upload image to IPFS
-  // 4. Call the verify function of the contract with the username, 
-  //    the input description, and the new IPFS hash
+  // 3. Upload the overlaid image to IPFS via Infura so we can set domain restrictions on api key use
+  // 4. Call the verify function of the contract with the username (without @), the input description, 
+  //    and the new IPFS hash
 
   const verify = () => {
     (async () => {
