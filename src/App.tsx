@@ -1,9 +1,7 @@
 import { ChakraProvider, ThemeConfig } from "@chakra-ui/react"
 import { Route, Routes } from "react-router-dom";
 import { extendTheme } from '@chakra-ui/react'
-import Redirect from "./ui/Redirect";
-import Home from "./ui/Home";
-import Verify from "./ui/Verify";
+import Home from "./Home";
 import {
   getDefaultWallets,
   RainbowKitProvider,
@@ -11,6 +9,8 @@ import {
 import { configureChains, createClient, WagmiConfig } from 'wagmi';
 import { polygon } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
+import Redirect from "./Redirect";
+import Verify from "./Verify";
 
 const { chains, provider } = configureChains(
   [polygon],

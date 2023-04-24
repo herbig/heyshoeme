@@ -1,7 +1,7 @@
 import { BigNumber } from "ethers";
 import { useLocation } from "react-router-dom";
-import { COLLECTION_URL } from "../const";
 import web3 from "web3";
+import { COLLECTION_URL } from "./const";
 
 export default function Redirect() {
 

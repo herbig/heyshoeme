@@ -1,5 +1,5 @@
-import { Center, VStack, Code, Image, Text, Link, Box } from "@chakra-ui/react";
-import { PAD_MD, CONTRACT_URL } from "../const";
+import { Center, VStack, Image, Text, Link } from "@chakra-ui/react";
+import { PAD_MD, CONTRACT_URL } from "./const";
 
 export default function Home() {
     return (

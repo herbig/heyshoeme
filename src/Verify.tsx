@@ -1,6 +1,5 @@
 import { Center, VStack, Input, Button, Link } from "@chakra-ui/react";
 import { useCallback, useRef, useState } from "react";
-import { ABI, COLLECTION_ADDRESS, PAD_MD } from "../const";
 import NFTPreview from "./NFTPreview";
 import { create } from 'ipfs-http-client';
 import html2canvas from "html2canvas";
@@ -8,6 +7,7 @@ import Web3 from "web3";
 import { ethers } from "ethers";
 import '@rainbow-me/rainbowkit/styles.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { COLLECTION_ADDRESS, ABI, PAD_MD } from "./const";
 
 global.Buffer = require('buffer').Buffer;
 
