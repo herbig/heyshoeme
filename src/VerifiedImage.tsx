@@ -1,5 +1,5 @@
 import { HTMLChakraProps, Image, Box } from "@chakra-ui/react";
-import mask from "../images/shoe_mask.png"
+import mask from "./images/shoe_mask.png"
 import { useEffect, useState } from "react";
 
 interface Props extends Partial<HTMLChakraProps<"div">> {
