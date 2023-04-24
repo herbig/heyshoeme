@@ -4,6 +4,32 @@ import { extendTheme } from '@chakra-ui/react'
 import Redirect from "./ui/Redirect";
 import Home from "./ui/Home";
 import Verify from "./ui/Verify";
+import {
+  getDefaultWallets,
+  RainbowKitProvider,
+} from '@rainbow-me/rainbowkit';
+import { configureChains, createClient, WagmiConfig } from 'wagmi';
+import { polygon } from 'wagmi/chains';
+import { publicProvider } from 'wagmi/providers/public';
+
+const { chains, provider } = configureChains(
+  [polygon],
+  [
+    publicProvider()
+  ]
+);
+
+const { connectors } = getDefaultWallets({
+  appName: 'My RainbowKit App',
+  projectId: 'YOUR_PROJECT_ID',
+  chains
+});
+
+const wagmiClient = createClient({
+  autoConnect: true,
+  connectors,
+  provider
+})
 
 const config: ThemeConfig = {
   initialColorMode: 'dark',
@@ -14,10 +40,14 @@ export default theme;
 
 export const App = () => (
   <ChakraProvider theme={theme}>
-    <Routes>
-      <Route path='/*' element={<Redirect />} />
-      <Route path='/' element={<Home />} />
-      <Route path='/&' element={<Verify />} />
-    </Routes>
+    <WagmiConfig client={wagmiClient}>
+      <RainbowKitProvider chains={chains}>
+        <Routes>
+          <Route path='/*' element={<Redirect />} />
+          <Route path='/' element={<Home />} />
+          <Route path='/&' element={<Verify />} />
+        </Routes>
+      </RainbowKitProvider>
+    </WagmiConfig>
   </ChakraProvider>
 )

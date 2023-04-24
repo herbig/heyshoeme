@@ -1,9 +1,14 @@
-import { Center, VStack, Input, Button } from "@chakra-ui/react";
+import { Center, VStack, Input, Button, Link } from "@chakra-ui/react";
 import { useCallback, useRef, useState } from "react";
-import { PAD_MD } from "../const";
+import { ABI, COLLECTION_ADDRESS, PAD_MD } from "../const";
 import NFTPreview from "./NFTPreview";
 import { create } from 'ipfs-http-client';
 import html2canvas from "html2canvas";
+import Web3 from "web3";
+import { ethers } from "ethers";
+import '@rainbow-me/rainbowkit/styles.css';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
+
 global.Buffer = require('buffer').Buffer;
 
 async function createBlob(imageElement: HTMLDivElement, callback: BlobCallback) {
@@ -38,12 +43,13 @@ async function uploadImage(blob: Blob, callback: IPFSCallback) {
 
 function useUploadToIPFS() {
     const upload = useCallback(
-        async (imageElement: HTMLDivElement) => {
+        async (imageElement: HTMLDivElement, username: string, description: string) => {
             createBlob(imageElement, (blob) => {
                 if (blob) {
                     uploadImage(blob, (cid) => {
-                        console.log('cid ' + cid);
-                        // TODO initiate contract transaction...
+                        // TODO use wagmi instead
+                        const contract = new ethers.Contract(COLLECTION_ADDRESS, ABI, Web3.givenProvider)
+                        contract.verify(username, description, cid);
                     });
                 } else {
                     // TODO error handling
@@ -55,30 +61,29 @@ function useUploadToIPFS() {
 }
 
 export default function Verify() {
-
-    // TODO
-    // 1. Why is IPFS only uploading the mask frame? probably need to download user image blob and set that as source
-    //      instead of just URL
-    // 2. Call the verify function of the contract with the username, description, and IPFS hash (cid)
-  
-    const [username, setUsername] = useState<string>();
+    const [verificationUrl, setVerificationUrl] = useState<string>();
     const [imageUrl, setImageUrl] = useState<string>();
-    const [description, setDescription] = useState<string>();
     const { upload } = useUploadToIPFS();
     const imageRef = useRef() as React.MutableRefObject<HTMLDivElement>;
+    const username = verificationUrl ? verificationUrl.substring(verificationUrl.indexOf('.com/') + 5, verificationUrl.indexOf('/status')) : undefined;
 
     return (
       <Center padding={PAD_MD}>
         <VStack spacing={PAD_MD} width={["90%", "70%", "70%", "50%"]} fontSize="xl">
+          <ConnectButton />
           <NFTPreview
             imageRef={imageRef}
             imageUrl={imageUrl} 
             username={username} 
-            description={description} />
-          <Input placeholder='username' onChange={(e) => {setUsername(e.target.value)}} />
-          <Input placeholder='image URL' onChange={(e) => {setImageUrl(e.target.value)}} />
-          <Input placeholder='description' onChange={(e) => {setDescription(e.target.value)}} />
-          <Button onClick={() => upload(imageRef.current)}>Verify</Button>
+            description={verificationUrl} />
+          <Input placeholder='verification url (Shoe Tweet)' onChange={(e) => {setVerificationUrl(e.target.value)}} />
+          <Link href={'https://twitter.com/' + username + '/photo'} isExternal>{username ? 'https://twitter.com/' + username + '/photo' : 'ㅤ'}</Link>
+          <Input placeholder='user image URL (linked above)' onChange={(e) => {setImageUrl(e.target.value)}} />
+          <Button onClick={() => {
+            if (username && verificationUrl) {
+                upload(imageRef.current, username, verificationUrl);
+            }
+            }}>Verify</Button>
         </VStack>
       </Center>
     );
