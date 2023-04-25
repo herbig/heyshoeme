@@ -3,18 +3,13 @@ import { useCallback, useRef, useState } from "react";
 import NFTPreview from "./NFTPreview";
 import { create } from 'ipfs-http-client';
 import html2canvas from "html2canvas";
-import Web3 from "web3";
-import { ethers } from "ethers";
 import '@rainbow-me/rainbowkit/styles.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { COLLECTION_ADDRESS, ABI, PAD_MD } from "./const";
+import { COLLECTION_ADDRESS, PAD_MD, ABI_SHORT } from "./const";
+import { useContractWrite, usePrepareContractWrite, useWaitForTransaction } from "wagmi";
+import { useDebounce } from 'use-debounce'
 
 global.Buffer = require('buffer').Buffer;
-
-async function createBlob(imageElement: HTMLDivElement, callback: BlobCallback) {
-    const canvas = await html2canvas(imageElement);
-    canvas.toBlob(callback, "image/jpeg", 1.0);
-}
 
 interface IPFSCallback {
     (cid: string): void;
@@ -35,37 +30,79 @@ async function uploadImage(blob: Blob, callback: IPFSCallback) {
         },
     });
 
-    // const { cid } = await client.add(JSON.stringify([blob]));
     const { cid } = await client.add(blob);
-
     callback.call(undefined, cid.toString());
 }
 
+async function createBlob(imageElement: HTMLDivElement, callback: BlobCallback) {
+    const canvas = await html2canvas(imageElement);
+    canvas.toBlob(callback, "image/jpeg", 1.0);
+}
+
+// function useVerify() {
+//     const verify = useCallback(
+//         async (imageElement: HTMLDivElement, username: string, description: string) => {
+//             createBlob(imageElement, (blob) => {
+//                 if (blob) {
+//                     uploadImage(blob, (cid) => {
+//                         // TODO use wagmi instead
+//                     });
+//                 } else {
+//                     // TODO error handling
+//                 }
+//             });
+//         }, []
+//     );
+//     return { verify };
+// }
+
 function useUploadToIPFS() {
+
+    const [cid, setCID] = useState<string>();
+
     const upload = useCallback(
-        async (imageElement: HTMLDivElement, username: string, description: string) => {
-            createBlob(imageElement, (blob) => {
+        async (imageElement: HTMLDivElement) => {
+            const canvas = await html2canvas(imageElement);
+            canvas.toBlob((blob) => {
                 if (blob) {
-                    uploadImage(blob, (cid) => {
-                        // TODO use wagmi instead
-                        const contract = new ethers.Contract(COLLECTION_ADDRESS, ABI, Web3.givenProvider)
-                        contract.verify(username, description, cid);
+                    uploadImage(blob, (cidHash) => {
+                        setCID(cidHash);
                     });
                 } else {
-                    // TODO error handling
+                    setCID(undefined);
                 }
-            });
+            }, "image/jpeg", 1.0);
         }, []
     );
-    return { upload };
+    return { cid, upload };
 }
 
 export default function Verify() {
     const [verificationUrl, setVerificationUrl] = useState<string>();
     const [imageUrl, setImageUrl] = useState<string>();
-    const { upload } = useUploadToIPFS();
+    const { verify } = useVerify();
     const imageRef = useRef() as React.MutableRefObject<HTMLDivElement>;
     const username = verificationUrl ? verificationUrl.substring(verificationUrl.indexOf('.com/') + 5, verificationUrl.indexOf('/status')) : undefined;
+
+    const debouncedUsername = useDebounce(username, 500);
+    const debouncedVerificationUrl = useDebounce(verificationUrl, 500);
+
+    const { config } = usePrepareContractWrite({
+        address: COLLECTION_ADDRESS,
+        abi: ABI_SHORT,
+        functionName: 'verify',
+        args: [debouncedUsername, debouncedVerificationUrl],
+    });
+
+    const { data, write } = useContractWrite(config)
+
+    const { isLoading, isSuccess } = useWaitForTransaction({
+        hash: data?.hash,
+    });
+
+    if (isSuccess) {
+        return (<>{window.location.replace('/' + username)}</>);
+    }
 
     return (
       <Center padding={PAD_MD}>
@@ -92,10 +129,8 @@ export default function Verify() {
             bgColor="blue.500"
             alignSelf="center"
             onClick={() => {
-            if (username && verificationUrl) {
-                upload(imageRef.current, username, verificationUrl);
-            }
-            }}>Verify</Button>
+                verify(imageRef.current, username!, verificationUrl!);
+            }} disabled={isLoading || !username || !verificationUrl || !write}>Verify</Button>
         </VStack>
       </Center>
     );
