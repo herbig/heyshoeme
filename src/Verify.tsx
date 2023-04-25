@@ -1,4 +1,4 @@
-import { Center, VStack, Input, Button, Link } from "@chakra-ui/react";
+import { Center, VStack, Input, Button, Link, Text, Box } from "@chakra-ui/react";
 import { useCallback, useRef, useState } from "react";
 import NFTPreview from "./NFTPreview";
 import { create } from 'ipfs-http-client';
@@ -69,17 +69,29 @@ export default function Verify() {
 
     return (
       <Center padding={PAD_MD}>
-        <VStack spacing={PAD_MD} width={["90%", "70%", "70%", "50%"]} fontSize="xl">
-          <ConnectButton />
+        <VStack spacing={PAD_MD} width={["90%", "70%", "70%", "50%"]} fontSize="xl" alignItems="start">
           <NFTPreview
+            alignSelf="center"
             imageRef={imageRef}
             imageUrl={imageUrl} 
             username={username} 
             description={verificationUrl} />
-          <Input placeholder='verification url (Shoe Tweet)' onChange={(e) => {setVerificationUrl(e.target.value)}} />
-          <Link href={'https://twitter.com/' + username + '/photo'} isExternal>{username ? 'https://twitter.com/' + username + '/photo' : 'ㅤ'}</Link>
-          <Input placeholder='user image URL (linked above)' onChange={(e) => {setImageUrl(e.target.value)}} />
-          <Button onClick={() => {
+          <Text><b>Step 1</b> - Connect your wallet, if you haven't already:</Text>
+          <Box alignSelf="center"><ConnectButton /></Box>
+          <Text><b>Step 2</b> - Enter the URL of the verification (shoe on head) Tweet:</Text>
+          <Input placeholder='https://twitter.com/elmo/status/1649183409661440002' onChange={(e) => {setVerificationUrl(e.target.value)}} />
+          <Text><b>Step 3</b> - click the green link to go to the user's image, and right click it to "Copy Image Address" and input it in the final field below:</Text>
+          <Link textColor="green" alignSelf="center" href={'https://twitter.com/' + username + '/photo'} isExternal>{username ? 'https://twitter.com/' + username + '/photo' : 'ㅤ'}</Link>
+          <Input placeholder='https://pbs.twimg.com/profile_images/1281234061357391873/a_eRlunA_400x400.jpg' onChange={(e) => {setImageUrl(e.target.value)}} />
+          <Text><b>Step 4</b> - Review the image and username you're verifying and click <i>Verify</i> to initiate the transaction:</Text>
+          <Button
+            fontSize="lg"
+            borderRadius="xl"
+            colorScheme="blue"
+            color="white"
+            bgColor="blue.500"
+            alignSelf="center"
+            onClick={() => {
             if (username && verificationUrl) {
                 upload(imageRef.current, username, verificationUrl);
             }

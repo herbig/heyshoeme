@@ -14,17 +14,12 @@ import Verify from "./Verify";
 
 const { chains, provider } = configureChains(
   [polygon],
-  [
-    publicProvider()
-  ]
+  [publicProvider()]
 );
-
 const { connectors } = getDefaultWallets({
-  appName: 'My RainbowKit App',
-  projectId: 'YOUR_PROJECT_ID',
+  appName: 'ShoeMe',
   chains
 });
-
 const wagmiClient = createClient({
   autoConnect: true,
   connectors,
@@ -45,7 +40,7 @@ export const App = () => (
         <Routes>
           <Route path='/*' element={<Redirect />} />
           <Route path='/' element={<Home />} />
-          <Route path='/&' element={<Verify />} />
+          <Route path='/&verify' element={<Verify />} />
         </Routes>
       </RainbowKitProvider>
     </WagmiConfig>

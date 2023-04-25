@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 interface Props extends Partial<HTMLChakraProps<"div">> {
     imageRef?: React.MutableRefObject<HTMLElement>;
-    imageUrl?: string ;
+    imageUrl?: string;
 }
   
 export default function VerifiedImage({ imageRef, imageUrl, ...rest }: Props) {
@@ -14,24 +14,22 @@ export default function VerifiedImage({ imageRef, imageUrl, ...rest }: Props) {
   useEffect(() => {
     async function fetchData() {
       if (imageUrl) {
-        const imgBlob = await fetch(imageUrl).then(r => r.blob());
-        setBlob(imgBlob);
+        try {
+          setBlob(await fetch(imageUrl).then(r => r.blob()));
+        } catch(e) {
+          setBlob(undefined);
+        }
+      } else {
+        setBlob(undefined);
       }
     }
     fetchData();
   }, [imageUrl]);
 
-  let src: string | undefined;
-  if (blob) {
-    src = URL.createObjectURL(blob);
-  } else {
-    src = undefined;
-  }
-  
   return (
     <Box ref={imageRef} width="400px" height="400px" {...rest}>
-      <Image src={src} position={"absolute"}/>
-      <Image src={mask} position={"relative"}/>
+      <Image src={blob ? URL.createObjectURL(blob) : undefined} position={"absolute"} />
+      <Image src={mask} position={"relative"} />
     </Box>
   );
 }
