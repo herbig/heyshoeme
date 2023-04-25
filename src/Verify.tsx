@@ -1,4 +1,4 @@
-import { Center, VStack, Input, Button, Link, Text, Box } from "@chakra-ui/react";
+import { Center, VStack, Input, Button, Link, Text, Box, useClipboard } from "@chakra-ui/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import NFTPreview from "./NFTPreview";
 import { create } from 'ipfs-http-client';
@@ -60,6 +60,7 @@ export default function Verify() {
     const { cid, setCID, upload } = useUploadToIPFS();
     const imageRef = useRef() as React.MutableRefObject<HTMLDivElement>;
     const username = verificationUrl ? verificationUrl.substring(verificationUrl.indexOf('.com/') + 5, verificationUrl.indexOf('/status')).toLowerCase() : undefined;
+    const { onCopy, value, setValue } = useClipboard("");
 
     const { config } = usePrepareContractWrite({
         address: COLLECTION_ADDRESS,
@@ -78,12 +79,9 @@ export default function Verify() {
         if (cid && write && !isLoading) {
             write();
             setCID(undefined);
+            setValue(`https://heyshoe.me/${username}`);
         }
-    }, [cid, setCID, write, isLoading]);
-
-    if (isSuccess) {
-        return (<>{window.location.replace('/' + username)}</>);
-    }
+    }, [cid, setCID, write, isLoading, setValue, username]);
 
     return (
       <Center padding={PAD_MD}>
@@ -113,6 +111,9 @@ export default function Verify() {
             onClick={() => {
                 upload(imageRef.current);
             }}>Verify</Button>
+            <Text><b>Step 5</b> - Once successfully mined, click the new ShoeMe verification link to copy it and reply to their Tweet!:</Text>
+            <Button onClick={onCopy} alignSelf="center">{isSuccess ? value: 'ㅤ'}</Button>
+            <Link textColor="green" alignSelf="center" href={verificationUrl} isExternal>{isSuccess ? verificationUrl : 'ㅤ'}</Link>
         </VStack>
       </Center>
     );
