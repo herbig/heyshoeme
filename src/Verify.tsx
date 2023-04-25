@@ -59,7 +59,7 @@ export default function Verify() {
     const [imageUrl, setImageUrl] = useState<string>();
     const { cid, setCID, upload } = useUploadToIPFS();
     const imageRef = useRef() as React.MutableRefObject<HTMLDivElement>;
-    const username = verificationUrl ? verificationUrl.substring(verificationUrl.indexOf('.com/') + 5, verificationUrl.indexOf('/status')) : undefined;
+    const username = verificationUrl ? verificationUrl.substring(verificationUrl.indexOf('.com/') + 5, verificationUrl.indexOf('/status')).toLowerCase() : undefined;
 
     const { config } = usePrepareContractWrite({
         address: COLLECTION_ADDRESS,
@@ -109,7 +109,7 @@ export default function Verify() {
             color="white"
             bgColor="blue.500"
             alignSelf="center"
-            isDisabled={isLoading || !username || !verificationUrl || !write}
+            isDisabled={isLoading || !username || !imageUrl || !write}
             onClick={() => {
                 upload(imageRef.current);
             }}>Verify</Button>
