@@ -5,7 +5,7 @@ export default function Home() {
     return (
       <Center padding={PAD_MD}>
         <VStack spacing={PAD_MD} width={["90%", "70%", "70%", "50%"]} fontSize="xl" alignItems="start">
-          <Image alignSelf="start" src={process.env.PUBLIC_URL + '/logo192.png'} />
+          <Image alignSelf="center" src={process.env.PUBLIC_URL + '/logo192.png'} />
           <Text>Ever been impersonated by a bad actor on social media? Ever gotten asked "R U a bot?" on social media?</Text>
           <Text>Enter <i>ShoeMe</i>, a Proof of Identity platform owned by the people, for the people. Our mission is to create a world where folks don't have to pay to be considered people.</Text>
           <Text>Ready to fully realize your digital personhood? Follow these 2 easy steps to get verified:</Text>
@@ -15,7 +15,7 @@ export default function Home() {
           <Text>Now you're ready to share your fully-verified identity with the world! 🎉</Text>
           <Text>Include the link to your certification in your bio and share <i>ShoeMe</i> with all your carbon-based friends and loved ones so they too can become a fully realized digital person!</Text>
           <Link
-              alignSelf="start"
+              alignSelf="center"
               color="teal.500"
               href={CONTRACT_URL}
               fontSize="2xl"

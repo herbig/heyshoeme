@@ -1,13 +1,12 @@
 import { Center, VStack, Input, Button, Link, Text, Box } from "@chakra-ui/react";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import NFTPreview from "./NFTPreview";
 import { create } from 'ipfs-http-client';
 import html2canvas from "html2canvas";
 import '@rainbow-me/rainbowkit/styles.css';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
-import { COLLECTION_ADDRESS, PAD_MD, ABI_SHORT } from "./const";
+import { COLLECTION_ADDRESS, PAD_MD, PAD_SM, VERIFY_ABI } from "./const";
 import { useContractWrite, usePrepareContractWrite, useWaitForTransaction } from "wagmi";
-import { useDebounce } from 'use-debounce'
 
 global.Buffer = require('buffer').Buffer;
 
@@ -34,28 +33,6 @@ async function uploadImage(blob: Blob, callback: IPFSCallback) {
     callback.call(undefined, cid.toString());
 }
 
-async function createBlob(imageElement: HTMLDivElement, callback: BlobCallback) {
-    const canvas = await html2canvas(imageElement);
-    canvas.toBlob(callback, "image/jpeg", 1.0);
-}
-
-// function useVerify() {
-//     const verify = useCallback(
-//         async (imageElement: HTMLDivElement, username: string, description: string) => {
-//             createBlob(imageElement, (blob) => {
-//                 if (blob) {
-//                     uploadImage(blob, (cid) => {
-//                         // TODO use wagmi instead
-//                     });
-//                 } else {
-//                     // TODO error handling
-//                 }
-//             });
-//         }, []
-//     );
-//     return { verify };
-// }
-
 function useUploadToIPFS() {
 
     const [cid, setCID] = useState<string>();
@@ -74,24 +51,21 @@ function useUploadToIPFS() {
             }, "image/jpeg", 1.0);
         }, []
     );
-    return { cid, upload };
+    return { cid, setCID, upload };
 }
 
 export default function Verify() {
     const [verificationUrl, setVerificationUrl] = useState<string>();
     const [imageUrl, setImageUrl] = useState<string>();
-    const { verify } = useVerify();
+    const { cid, setCID, upload } = useUploadToIPFS();
     const imageRef = useRef() as React.MutableRefObject<HTMLDivElement>;
     const username = verificationUrl ? verificationUrl.substring(verificationUrl.indexOf('.com/') + 5, verificationUrl.indexOf('/status')) : undefined;
 
-    const debouncedUsername = useDebounce(username, 500);
-    const debouncedVerificationUrl = useDebounce(verificationUrl, 500);
-
     const { config } = usePrepareContractWrite({
         address: COLLECTION_ADDRESS,
-        abi: ABI_SHORT,
+        abi: VERIFY_ABI,
         functionName: 'verify',
-        args: [debouncedUsername, debouncedVerificationUrl],
+        args: [username ? username : '', verificationUrl ? verificationUrl : '', cid ? cid : ''],
     });
 
     const { data, write } = useContractWrite(config)
@@ -100,13 +74,20 @@ export default function Verify() {
         hash: data?.hash,
     });
 
+    useEffect(() => {
+        if (cid && write && !isLoading) {
+            write();
+            setCID(undefined);
+        }
+    }, [cid, setCID, write, isLoading]);
+
     if (isSuccess) {
         return (<>{window.location.replace('/' + username)}</>);
     }
 
     return (
       <Center padding={PAD_MD}>
-        <VStack spacing={PAD_MD} width={["90%", "70%", "70%", "50%"]} fontSize="xl" alignItems="start">
+        <VStack spacing={PAD_SM} width={["90%", "70%", "70%", "50%"]} fontSize="xl" alignItems="start">
           <NFTPreview
             alignSelf="center"
             imageRef={imageRef}
@@ -128,9 +109,10 @@ export default function Verify() {
             color="white"
             bgColor="blue.500"
             alignSelf="center"
+            isDisabled={isLoading || !username || !verificationUrl || !write}
             onClick={() => {
-                verify(imageRef.current, username!, verificationUrl!);
-            }} disabled={isLoading || !username || !verificationUrl || !write}>Verify</Button>
+                upload(imageRef.current);
+            }}>Verify</Button>
         </VStack>
       </Center>
     );
